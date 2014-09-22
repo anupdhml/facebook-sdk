@@ -28,25 +28,19 @@ import simplejson
 # Create a file access_token and paste it there. or just directly assign it here
 access_token = open('access_token').read()
 
-def put(data, filename, append=False):
-    """dumps data to a json file
-    """
-    if append:
-        open_flag = 'a'
-    else:
-        open_flag = 'w'
+#dumps data to a json file
+def put(data, filename):
 	try:
 		jsondata = simplejson.dumps(data, indent=4, skipkeys=True, sort_keys=True)
-		fd = open(filename, open_flag)
+		fd = open(filename, 'w')
 		fd.write(jsondata)
 		fd.close()
 	except:
 		print 'ERROR writing', filename
 		pass
 
+# get data from a json file
 def get(filename):
-    """get data from a json file
-    """
     returndata = {}
     try:
         fd = open(filename, 'r')

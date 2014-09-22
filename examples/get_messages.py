@@ -34,39 +34,21 @@ def get_all_thread_messages(graph, thread_id):
     thread_details = "{} - {} - {}".format(thread_id, thread['updated_time'], ', '.join(thread_recipients))
     print '\nGathering messages for ', thread_details
 
-    all_messages = {}
     all_pages = []
     page = graph.get_connections(thread_id, 'comments')
 
-    # Wrap this block in a while loop so we can keep paginating requests until
-    # finished.
+    # Wrap this block in a while loop so we can keep paginating requests until finished.
     while True:
         try:
             all_pages.append(page)
-            # Perform some action on each message in the collection we receive from
-            # Facebook.
+            # Perform some action on each message in the collection we receive from Facebook.
             [message_action(message=message) for message in page['data']]
-            # fb does not return messages chronologically (even with the documented options)
-            # so maintain a list of messages to print them chronologically 
-            for message in page['data']:
-                timestamp = dateparser.parse(message['created_time'])
-                unix_time = time.mktime(timestamp.timetuple())
-                all_messages[unix_time] = message
-
             # Attempt to make a request to the next page of data, if it exists.
             page = requests.get(page['paging']['next']).json()
         except KeyError:
-            print 'error'
-            print page
             # When there are no more pages (['paging']['next']), break from the
             # loop and end the script.
             break
-
-    print '\n\nNow listing these chronologically'
-    keylist = all_messages.keys()
-    keylist.sort()
-    for key in keylist:
-        message_action(all_messages[key])
 
     put(all_pages, thread_details+'.json')
 
@@ -163,8 +145,19 @@ if __name__ == '__main__':
     elif command == '--from-file':
         filename = sys.argv[2]
         all_pages = get(filename)
+        # fb does not return messages chronologically (even with the documented options)
+        # so maintain this to print them chronologically
+        all_messages = {}
         for page in all_pages:
-            [message_action(message=message) for message in page['data']]
+            #[message_action(message=message) for message in page['data']]
+            for message in page['data']:
+                timestamp = dateparser.parse(message['created_time'])
+                unix_time = time.mktime(timestamp.timetuple())
+                all_messages[unix_time] = message
+        keylist = all_messages.keys()
+        keylist.sort()
+        for key in keylist:
+            message_action(all_messages[key])
     else:
         print 'Invalid first argument' 
         sys.exit(1)

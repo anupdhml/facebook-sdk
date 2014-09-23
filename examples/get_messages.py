@@ -57,8 +57,9 @@ def message_action(message):
     Here, we just print the message details
     """
     msg_time    = message['created_time'] if message.get('created_time') else '(null)'
-    msg_from    = message['from']['name'].encode('utf-8') if message.get('from') else '(null)'
-    msg_content = message['message'].encode('utf-8') if message.get('message') else '(null)'
+    msg_from    = message['from']['id'] + ' - ' + message['from']['name'].encode('utf-8') if message.get('from') else '(null)'
+    msg_content = simplejson.dumps(message['message']) if message.get('message') else '(null)'
+    #msg_content = message['message'].encode('utf-8') if message.get('message') else '(null)'
 
     message_details = '{} | {} | {}'.format(msg_time, msg_from, msg_content)
     print message_details

@@ -51,20 +51,25 @@ def get(filename):
         print 'COULD NOT LOAD:', filename
     return returndata
 
-def post_action(post):
+def post_action(post, indent_marker=''):
     """ Here you might want to do something with each post. E.g. grab the
     post's message (post['message']) or the post's picture (post['picture']).
     In this implementation we just print the post's created time.
     """
+    post_type    = post['type'] if post.get('type') else '(null)'
     post_time    = post['created_time'] if post.get('created_time') else '(null)'
     post_from    = post['from']['id'] + ' - ' + post['from']['name'].encode('utf-8') if post.get('from') else '(null)'
-    post_content = post['message'].encode('utf-8') if post.get('message') else None
+    post_content = simplejson.dumps(post['message']) if post.get('message') else '(null) {}'.format(post_type)
+    #post_content = post['message'].encode('utf-8') if post.get('message') else '(null) {}'.format(post['type'])
 
     # includes status updates and message in links shared. Does not include
     # photo captions (will need to make another request with the photo id if that's needed)
-    if post_content:
-        post_details = '{} | {} | {}'.format(post_time, post_from, post_content)
-        print post_details
+    #post_details = '{} ^ {} ^ {}'.format(post_time, post_from, post_content)
+    post_details = '{} | {} | {}'.format(post_time, post_from, post_content)
+    print indent_marker + post_details
+
+    if post.get('comments'):
+        [post_action(comment, '>--') for comment in post['comments']['data']]
 
 if __name__ == '__main__':
     if len(sys.argv)!=4:
@@ -82,6 +87,8 @@ if __name__ == '__main__':
         profile = graph.get_object(user)
         page = graph.get_connections(profile['id'], 'feed')
         #page = graph.get_connections(profile['id'], 'posts')
+        #page = graph.get_connections(profile['id'], 'posts', **{'until':'1373083499'})
+        #page = graph.get_connections(profile['id'], 'posts', **{'since':'1184544000'})
         # Wrap this block in a while loop so we can keep paginating requests until finished.
         all_pages = []
         while True:
